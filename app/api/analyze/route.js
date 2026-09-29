@@ -38,7 +38,6 @@ export async function POST(request) {
       );
     }
     let recipe = null;
-    let geminiDebug = null;
     try {
       const ai = await parseRecipeWithGemini({
         title: data.title,
@@ -47,12 +46,9 @@ export async function POST(request) {
       });
       if (ai && Array.isArray(ai.ingredients) && ai.ingredients.length) {
         recipe = buildRecipeFromAi(ai, data);
-      } else {
-        geminiDebug = { stage: "empty-result", ai };
       }
     } catch (err) {
       console.error("Gemini parsing failed, falling back to rule-based parser:", err);
-      geminiDebug = { stage: "threw", error: String(err && err.message ? err.message : err) };
     }
 
     if (!recipe) recipe = buildRecipe(data);
@@ -62,7 +58,7 @@ export async function POST(request) {
     // better. Surface that clearly instead of silently showing an empty list.
     recipe.insufficientInfo = !recipe.hasTranscript && !recipe.hasIngredients;
 
-    return NextResponse.json({ recipe, _geminiDebug: geminiDebug });
+    return NextResponse.json({ recipe });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
