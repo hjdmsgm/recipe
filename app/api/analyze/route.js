@@ -50,7 +50,7 @@ export async function POST(request) {
     // better. Surface that clearly instead of silently showing an empty list.
     recipe.insufficientInfo = !recipe.hasTranscript && !recipe.hasIngredients;
 
-    return NextResponse.json({ recipe });
+    return NextResponse.json({ recipe, _debug: data.debug });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
