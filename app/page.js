@@ -42,19 +42,20 @@ export default function Home() {
   const [targetServings, setTargetServings] = useState(2);
   const [showRawDescription, setShowRawDescription] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [manualDescription, setManualDescription] = useState("");
+  const [showManualPaste, setShowManualPaste] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
-  async function handleAnalyze(e) {
-    e.preventDefault();
-    if (!urlInput.trim() || loading) return;
-    setLoading(true);
+  async function runAnalyze({ manualDescription: manualDesc } = {}) {
+    const url = urlInput.trim();
+    if (!url) return;
     setError("");
-    setRecipe(null);
 
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlInput.trim() }),
+        body: JSON.stringify(manualDesc ? { url, manualDescription: manualDesc } : { url }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -66,12 +67,27 @@ export default function Home() {
       setBaseServings(data.recipe.baseServings);
       setTargetServings(data.recipe.baseServings);
       setShowRawDescription(false);
+      setShowManualPaste(false);
       setEditMode(!data.recipe.hasIngredients);
     } catch {
       setError("서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.");
-    } finally {
-      setLoading(false);
     }
+  }
+
+  async function handleAnalyze(e) {
+    e.preventDefault();
+    if (!urlInput.trim() || loading) return;
+    setLoading(true);
+    setRecipe(null);
+    await runAnalyze();
+    setLoading(false);
+  }
+
+  async function handleManualRetry() {
+    if (!manualDescription.trim() || retrying) return;
+    setRetrying(true);
+    await runAnalyze({ manualDescription });
+    setRetrying(false);
   }
 
   function ratio() {
@@ -177,12 +193,40 @@ export default function Home() {
             </div>
 
             {recipe.insufficientInfo ? (
-              <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-                이 영상은 자막도 없고 설명란에도 재료 정보가 없어서, 텍스트만으로는
-                레시피를 찾기 어려워요. (영상 속 음성이나 화면 글자까지 분석해야
-                하는 영상이라 아직 지원하지 않아요.) 아래에서 재료를 직접
-                입력해주세요.
-              </p>
+              <div className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p>
+                  이 영상은 자막도 없고 설명란에도 재료 정보가 없어서, 텍스트만으로는
+                  레시피를 찾기 어려워요. 유튜브 페이지에서 설명란을 직접 복사해
+                  붙여넣으시면 그걸로 다시 분석해볼게요.
+                </p>
+                {showManualPaste ? (
+                  <div className="mt-3">
+                    <textarea
+                      value={manualDescription}
+                      onChange={(e) => setManualDescription(e.target.value)}
+                      placeholder="유튜브 영상 설명란 내용을 여기에 붙여넣으세요"
+                      rows={5}
+                      className="w-full rounded-lg border border-red-200 bg-white p-3 text-sm text-neutral-800 outline-none focus:border-red-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleManualRetry}
+                      disabled={!manualDescription.trim() || retrying}
+                      className="mt-2 rounded-lg bg-red-700 px-4 py-2 text-xs font-medium text-white disabled:opacity-40"
+                    >
+                      {retrying ? "다시 분석 중..." : "붙여넣은 내용으로 다시 분석"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowManualPaste(true)}
+                    className="mt-2 underline hover:text-red-900"
+                  >
+                    설명란 붙여넣기
+                  </button>
+                )}
+              </div>
             ) : (
               !recipe.hasIngredients && (
                 <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">

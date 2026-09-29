@@ -11,7 +11,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "요청 형식이 올바르지 않아요." }, { status: 400 });
   }
 
-  const { url } = body || {};
+  const { url, manualDescription } = body || {};
   if (!url || typeof url !== "string") {
     return NextResponse.json({ error: "유튜브 URL을 입력해주세요." }, { status: 400 });
   }
@@ -23,6 +23,14 @@ export async function POST(request) {
 
   try {
     const data = await fetchVideoData(videoId);
+
+    // YouTube sometimes gates the scrape (bot-check) on server IPs, leaving
+    // description/captions empty — let the user paste the description in
+    // themselves instead of being stuck.
+    if (typeof manualDescription === "string" && manualDescription.trim()) {
+      data.description = manualDescription.trim();
+    }
+
     if (!data.title && !data.description && !data.transcript) {
       return NextResponse.json(
         { error: "영상 정보를 가져오지 못했어요. 비공개 영상이거나 존재하지 않는 영상일 수 있어요." },
@@ -50,7 +58,7 @@ export async function POST(request) {
     // better. Surface that clearly instead of silently showing an empty list.
     recipe.insufficientInfo = !recipe.hasTranscript && !recipe.hasIngredients;
 
-    return NextResponse.json({ recipe, _debug: data.debug });
+    return NextResponse.json({ recipe });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
