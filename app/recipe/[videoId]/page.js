@@ -184,6 +184,11 @@ export default function RecipeDetail() {
   }
 
   const stepCount = recipe.steps.length;
+  // The "영상 팁" tab shows both the overall video tips and any per-step
+  // tips (step.tip) — otherwise a tip that only got attached to one step
+  // (e.g. via the rule-based parser's trailing-parenthetical heuristic)
+  // would never surface anywhere outside Cook Mode.
+  const allTips = [...recipe.tips, ...recipe.steps.map((s) => s.tip).filter(Boolean)];
 
   return (
     <div className="pb-[110px]">
@@ -311,7 +316,7 @@ export default function RecipeDetail() {
           >
             {TAB_LABEL[tab]}
             <span className="text-xs ml-0.5">
-              {tab === "ing" ? recipe.ingredients.length : tab === "tip" ? recipe.tips.length : stepCount}
+              {tab === "ing" ? recipe.ingredients.length : tab === "tip" ? allTips.length : stepCount}
             </span>
           </button>
         ))}
@@ -328,7 +333,7 @@ export default function RecipeDetail() {
         )}
         {activeTab === "tip" && (
           <>
-            <TipList tips={recipe.tips} />
+            <TipList tips={allTips} />
             <button onClick={() => selectTab("step")} className="block ml-auto mt-4 text-main font-bold text-sm">
               만드는 순서 보기
             </button>
