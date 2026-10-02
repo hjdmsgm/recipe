@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-main: #ff6835;
+  --color-main-deep: #e5521f;
+  --color-main-soft: #ffede5;
+  --color-sub: #777777;
+  --color-bg: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-ink: #171717;
+  --color-line: #ece7de;
+  --color-dark: #171717;
+  --color-dark-card: #262626;
+  --color-dark-line: #3a3a3a;
+  --color-dark-sub: #a8a8a8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-main: var(--color-main);
+  --color-main-deep: var(--color-main-deep);
+  --color-main-soft: var(--color-main-soft);
+  --color-sub: var(--color-sub);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-ink: var(--color-ink);
+  --color-line: var(--color-line);
+  --color-dark: var(--color-dark);
+  --color-dark-card: var(--color-dark-card);
+  --color-dark-line: var(--color-dark-line);
+  --color-dark-sub: var(--color-dark-sub);
+  --font-sans: var(--font-noto-sans-kr);
+  --font-logo: var(--font-nunito);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --color-bg: #121212;
+    --color-surface: #1e1e1e;
+    --color-ink: #f2f2f2;
+    --color-line: #2e2e2e;
+    --color-main-soft: #3a2218;
+    --color-sub: #9a9a9a;
   }
 }
 
+:root[data-theme="dark"] {
+  --color-bg: #121212;
+  --color-surface: #1e1e1e;
+  --color-ink: #f2f2f2;
+  --color-line: #2e2e2e;
+  --color-main-soft: #3a2218;
+  --color-sub: #9a9a9a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans), "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+@keyframes pop {
+  50% {
+    transform: scale(1.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

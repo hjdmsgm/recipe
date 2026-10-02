@@ -1,29 +1,41 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_KR, Nunito } from "next/font/google";
+import Icons from "@/components/Icons";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const notoSansKR = Noto_Sans_KR({
+  variable: "--font-noto-sans-kr",
   subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["800", "900"],
 });
 
 export const metadata = {
-  title: "레시피 인분 계산기",
-  description: "유튜브 레시피 영상을 분석해서 인분에 맞게 재료를 알려드려요.",
+  title: "cooklab",
+  description: "영상은 레시피로, 레시피는 요리로.",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${notoSansKR.variable} ${nunito.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-50 text-neutral-900">
-        {children}
+      <body className="min-h-full flex flex-col bg-bg text-ink">
+        <Icons />
+        <div className="mx-auto w-full max-w-[480px] min-h-screen relative flex-1 flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );
