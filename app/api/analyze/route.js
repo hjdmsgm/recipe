@@ -50,6 +50,7 @@ export async function POST(request) {
         );
       }
       videoRecipe.insufficientInfo = false;
+      videoRecipe.source = "ai-video";
       return NextResponse.json({ recipe: videoRecipe });
     }
 

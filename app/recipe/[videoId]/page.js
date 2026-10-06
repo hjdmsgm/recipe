@@ -7,7 +7,7 @@ import IngredientList from "@/components/IngredientList";
 import TipList from "@/components/TipList";
 import StepList from "@/components/StepList";
 import CookMode from "@/components/cook/CookMode";
-import { getByVideoId, getCachedAnalyzed, save, remove } from "@/lib/storage";
+import { getByVideoId, getCachedAnalyzed, cacheAnalyzed, save, remove } from "@/lib/storage";
 
 const TABS = ["ing", "tip", "step"];
 const TAB_LABEL = { ing: "재료", tip: "영상 팁", step: "순서" };
@@ -145,6 +145,9 @@ export default function RecipeDetail() {
       }
       setRecipe(data.recipe);
       setServings(data.recipe.baseServings);
+      cacheAnalyzed(videoId, data.recipe);
+      if (saved) save(videoId, { recipe: data.recipe, servings: data.recipe.baseServings });
+      showToast("영상을 분석했어요");
     } catch {
       setVideoAnalyzeError("서버에 연결하지 못했어요.");
     } finally {
@@ -184,6 +187,12 @@ export default function RecipeDetail() {
   }
 
   const stepCount = recipe.steps.length;
+  // Computed from the recipe itself (not a server flag) so recipes cached or
+  // saved before this check existed get it too.
+  const missingParts = [
+    recipe.ingredients.length === 0 && "재료",
+    recipe.steps.length === 0 && "조리 순서",
+  ].filter(Boolean);
   // The "영상 팁" tab shows both the overall video tips and any per-step
   // tips (step.tip) — otherwise a tip that only got attached to one step
   // (e.g. via the rule-based parser's trailing-parenthetical heuristic)
@@ -278,10 +287,10 @@ export default function RecipeDetail() {
         </div>
       </div>
 
-      {recipe.insufficientInfo && (
+      {missingParts.length > 0 && (
         <div className="mx-5 mt-4 rounded-2xl bg-main-soft px-4 py-3.5 text-sm">
           <p className="m-0 text-main-deep">
-            이 영상은 자막도, 설명란에 재료 정보도 없어서 텍스트만으로는 레시피를 찾기 어려워요.
+            설명란·자막 텍스트만으로는 {missingParts.join("·")} 정보를 찾지 못했어요. AI가 영상을 직접 보고 분석해볼 수 있어요.
           </p>
           <button
             type="button"
@@ -341,6 +350,20 @@ export default function RecipeDetail() {
         )}
         {activeTab === "step" && <StepList steps={recipe.steps} />}
       </div>
+
+      {missingParts.length === 0 && recipe.source !== "ai-video" && (
+        <div className="px-5 pt-4 text-center">
+          <button
+            type="button"
+            onClick={handleAnalyzeVideoDirect}
+            disabled={videoAnalyzing}
+            className="text-xs text-sub underline disabled:opacity-50"
+          >
+            {videoAnalyzing ? "AI가 영상을 보는 중..." : "결과가 이상한가요? AI가 영상을 직접 보고 다시 분석하기"}
+          </button>
+          {videoAnalyzeError && <p className="mt-1.5 text-xs text-main-deep">{videoAnalyzeError}</p>}
+        </div>
+      )}
 
       <div
         className="fixed left-0 right-0 bottom-0 z-20 px-5"
