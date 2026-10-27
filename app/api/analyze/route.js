@@ -3,7 +3,42 @@ import { extractVideoId, fetchVideoData } from "@/lib/youtube";
 import { buildRecipe, buildRecipeFromAi } from "@/lib/parser";
 import { parseRecipeWithGemini, parseRecipeFromVideoUrl } from "@/lib/gemini";
 
+// 앱인토스 미니앱(minirecipe)에서 호출하기 위한 CORS 허용 Origin.
+// 실서비스·QR 테스트 Origin은 SDK 버전에 따라 달라서 두 계열을 모두 둔다.
+const ALLOWED_ORIGINS = new Set([
+  "https://minirecipe.apps.tossmini.com",
+  "https://minirecipe.private-apps.tossmini.com",
+  "https://minirecipe.web.tossmini.com",
+  "https://minirecipe.private-web.tossmini.com",
+  "http://localhost:5173",
+  "http://localhost:5174",
+]);
+
+function corsHeaders(request) {
+  const origin = request.headers.get("origin");
+  if (!origin || !ALLOWED_ORIGINS.has(origin)) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, x-anon-key",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
+  };
+}
+
+export async function OPTIONS(request) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(request) });
+}
+
 export async function POST(request) {
+  const response = await handlePost(request);
+  for (const [key, value] of Object.entries(corsHeaders(request))) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
+async function handlePost(request) {
   let body;
   try {
     body = await request.json();
