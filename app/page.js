@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import BottomTabBar from "@/components/BottomTabBar";
 import RecipeCard from "@/components/RecipeCard";
 import AnalyzingModal from "@/components/AnalyzingModal";
+import HowItWorks from "@/components/HowItWorks";
 import { extractVideoId } from "@/lib/youtube";
 import { getAll, cacheAnalyzed } from "@/lib/storage";
 
@@ -135,18 +136,7 @@ export default function Home() {
         <div className="flex justify-between items-baseline mt-[30px] mb-3">
           <h2 className="text-lg font-bold m-0">이렇게 요리해요</h2>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            ["1", "링크 붙여넣기"],
-            ["2", "인분 정하기"],
-            ["3", "단계별 따라 하기"],
-          ].map(([n, label]) => (
-            <div key={n} className="bg-surface rounded-xl px-2.5 py-3.5 text-center text-[13px]">
-              <b className="block text-main text-lg font-black mb-0.5">{n}</b>
-              {label}
-            </div>
-          ))}
-        </div>
+        <HowItWorks />
       </main>
       <BottomTabBar />
       <AnalyzingModal
