@@ -43,17 +43,17 @@ async function handlePost(request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "요청 형식이 올바르지 않아요." }, { status: 400 });
+    return NextResponse.json({ error: "요청을 처리하지 못했어요. 앱을 다시 열어 시도해 주세요." }, { status: 400 });
   }
 
   const { url, manualDescription, videoMode } = body || {};
   if (!url || typeof url !== "string") {
-    return NextResponse.json({ error: "유튜브 URL을 입력해주세요." }, { status: 400 });
+    return NextResponse.json({ error: "유튜브 링크를 붙여넣어 주세요." }, { status: 400 });
   }
 
   const videoId = extractVideoId(url);
   if (!videoId) {
-    return NextResponse.json({ error: "올바른 유튜브 URL이 아니에요." }, { status: 400 });
+    return NextResponse.json({ error: "유튜브 링크 형식이 아니에요. youtube.com 또는 youtu.be 주소를 붙여넣어 주세요." }, { status: 400 });
   }
 
   try {
@@ -74,13 +74,13 @@ async function handlePost(request) {
       } catch (err) {
         console.error("Gemini video analysis failed:", err);
         return NextResponse.json(
-          { error: "영상을 직접 분석하는 데 실패했어요. 잠시 후 다시 시도해주세요." },
+          { error: "영상을 직접 분석하지 못했어요. 잠시 후 다시 시도해 주세요." },
           { status: 502 }
         );
       }
       if (!videoRecipe) {
         return NextResponse.json(
-          { error: "영상을 분석했지만 재료를 찾지 못했어요." },
+          { error: "영상을 분석했지만 재료를 찾지 못했어요. 요리 과정이 담긴 영상인지 확인해 주세요." },
           { status: 404 }
         );
       }
@@ -98,7 +98,7 @@ async function handlePost(request) {
 
     if (!data.title && !data.description && !data.transcript) {
       return NextResponse.json(
-        { error: "영상 정보를 가져오지 못했어요. 비공개 영상이거나 존재하지 않는 영상일 수 있어요." },
+        { error: "영상 정보를 가져오지 못했어요. 비공개이거나 삭제된 영상일 수 있어요. 링크를 다시 확인해 주세요." },
         { status: 404 }
       );
     }
@@ -128,7 +128,7 @@ async function handlePost(request) {
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { error: "영상 정보를 가져오는 중 오류가 발생했어요. 잠시 후 다시 시도해주세요." },
+      { error: "영상 정보를 가져오지 못했어요. 잠시 후 다시 시도해 주세요." },
       { status: 500 }
     );
   }
