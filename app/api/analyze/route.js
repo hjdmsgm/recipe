@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { extractVideoId, fetchVideoData } from "@/lib/youtube";
 import { buildRecipe, buildRecipeFromAi } from "@/lib/parser";
-import { parseRecipeWithGemini, parseRecipeFromVideoUrl } from "@/lib/gemini";
+import { parseRecipeWithGemini, parseRecipeFromVideoUrl, GeminiQuotaError } from "@/lib/gemini";
 
 // 앱인토스 미니앱(minirecipe)에서 호출하기 위한 CORS 허용 Origin.
 // 실서비스·QR 테스트 Origin은 SDK 버전에 따라 달라서 두 계열을 모두 둔다.
@@ -72,6 +72,16 @@ async function handlePost(request) {
           videoRecipe = buildRecipeFromAi(ai, data);
         }
       } catch (err) {
+        if (err instanceof GeminiQuotaError) {
+          console.error("Gemini video analysis quota exceeded:", err.kind, err.retryAfterSeconds);
+          // 분당 한도면 곧 풀리고, 하루 한도면 내일까지 못 쓴다. 사용자가 무엇을 해야 하는지 다르게 알려 준다.
+          const message =
+            err.kind === "daily"
+              ? "오늘 AI 영상 분석 가능 횟수를 모두 사용했어요. 내일 다시 시도해 주세요. 지금은 자막과 설명으로 정리한 결과를 쓸 수 있어요."
+              : "지금 AI 영상 분석 요청이 몰려 있어요. 1분 정도 뒤에 다시 시도해 주세요.";
+          const headers = err.kind === "rate" && err.retryAfterSeconds ? { "Retry-After": String(err.retryAfterSeconds) } : {};
+          return NextResponse.json({ error: message, quota: err.kind }, { status: 429, headers });
+        }
         console.error("Gemini video analysis failed:", err);
         return NextResponse.json(
           { error: "영상을 직접 분석하지 못했어요. 잠시 후 다시 시도해 주세요." },
