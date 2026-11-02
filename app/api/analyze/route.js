@@ -12,7 +12,14 @@ const ALLOWED_ORIGINS = new Set([
   "https://minirecipe.private-web.tossmini.com",
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:4173",
 ]);
+
+// 개인용 웹 버전 등 추가 Origin은 환경변수 EXTRA_ALLOWED_ORIGINS(쉼표 구분)로 넣는다.
+for (const origin of (process.env.EXTRA_ALLOWED_ORIGINS || "").split(",")) {
+  const trimmed = origin.trim();
+  if (trimmed) ALLOWED_ORIGINS.add(trimmed);
+}
 
 function corsHeaders(request) {
   const origin = request.headers.get("origin");
